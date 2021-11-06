@@ -41,7 +41,9 @@ char **tokenize(char *line)
 
 int main(int argc, char* argv[]) {
 	char  line[MAX_INPUT_SIZE];            
-	char  **tokens;              
+	char  **tokens;   
+	const char* PATH = getenv("PATH"); 
+	char mode[10];       
 	int i;
 
 
@@ -61,6 +63,16 @@ int main(int argc, char* argv[]) {
        //do whatever you want with the commands, here we just print them
 
 		for(i=0;tokens[i]!=NULL;i++){
+
+			if (strcmp(tokens[i], "cd") != 0)
+			{
+				strcpy(mode, "cd");
+			}
+			if (strcmp(mode, "cd") != 0)
+			{
+				printf("Yo the mode is cd");
+			}
+	
 			printf("found token %s (remove this debug output later)\n", tokens[i]);
 		}
        
