@@ -8,6 +8,8 @@
 #define MAX_TOKEN_SIZE 64
 #define MAX_NUM_TOKENS 64
 
+char mode[10]; 
+
 /* Splits the string by space and returns the array of tokens
 *
 */
@@ -38,13 +40,27 @@ char **tokenize(char *line)
   return tokens;
 }
 
+void findFile(char * mode, char splitPath)
+{
+	while (splitPath != NULL)
+	{
+		char cwd[256];
+
+		//printf("%s\n", splitPATH);
+		chdir(splitPath);
+		printf(getcwd(cwd, sizeof(cwd)));
+		printf("\n");
+		splitPath = strtok(NULL, ":");
+	}
+}
 
 int main(int argc, char* argv[]) {
 	char  line[MAX_INPUT_SIZE];            
 	char  **tokens;   
-	const char* PATH = getenv("PATH"); 
-	char mode[10];       
+	char* PATH = getenv("PATH");       
 	int i;
+	pid_t pid;
+	char splitPath = strtok(PATH, ":");
 
 
 	while(1) {			
@@ -63,18 +79,25 @@ int main(int argc, char* argv[]) {
        //do whatever you want with the commands, here we just print them
 
 		for(i=0;tokens[i]!=NULL;i++){
-
-			if (strcmp(tokens[i], "cd") != 0)
-			{
-				strcpy(mode, "cd");
-			}
-			if (strcmp(mode, "cd") != 0)
-			{
-				printf("Yo the mode is cd");
-			}
-	
 			printf("found token %s (remove this debug output later)\n", tokens[i]);
+	
+				if (strcmp(tokens[0], "cd") == 0)
+				{
+					strcpy(mode, "cd");
+
+					findFile(mode, splitPath);
+
+				}
+	
+				else
+				{
+					printf("\n");
+				}
+			}
+		
 		}
+
+
        
 		// Freeing the allocated memory	
 		for(i=0;tokens[i]!=NULL;i++){
@@ -82,6 +105,5 @@ int main(int argc, char* argv[]) {
 		}
 		free(tokens);
 
-	}
 	return 0;
 }
