@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -9,7 +10,6 @@
 #define MAX_NUM_TOKENS 64
 
 int pid;
-char mode[10]; 
 
 /* Splits the string by space and returns the array of tokens
 *
@@ -41,15 +41,28 @@ char **tokenize(char *line)
   return tokens;
 }
 
-void execCommand(char* mode, char ** tokens)
+void execCommand(char ** tokens, int i)
 {
 	pid = fork();
 
-	if (pid == 0)
+	if (pid == 0 && strcmp(tokens[0], "cd") != 0)
 	{
-		if (-1 ==  execlp(mode, mode, tokens[1], NULL)) {
-			printf("Failed to find program in PATH.");
+		if (-1 ==  execlp(tokens[0], tokens[0], tokens[1], NULL)) {
+
+			if (i == 0)
+			{
+				printf("Failed to find program '%s' in PATH.\n", tokens[0]);
+			}
 		}
+	}
+
+	else if (pid == 0) {
+		chdir(tokens[1]);
+	}
+
+	if (pid != 0)
+	{
+		wait(NULL);
 	}
 
 }
@@ -58,18 +71,17 @@ int main(int argc, char* argv[]) {
 
 	char  line[MAX_INPUT_SIZE];            
 	char  **tokens;   
-  
 	int i;
 
-
-	while(1) {			
+	while(1) 
+	{			
 		/* BEGIN: TAKING INPUT */
+
 		bzero(line, sizeof(line));
 		printf("$ ");
 		scanf("%[^\n]", line);
 		getchar();
 
-		printf("Command entered: %s (remove this debug output later)\n", line);
 		/* END: TAKING INPUT */
 
 		line[strlen(line)] = '\n'; //terminate with new line
@@ -77,30 +89,19 @@ int main(int argc, char* argv[]) {
    
        //do whatever you want with the commands, here we just print them
 
-		for(i=0;tokens[i]!=NULL;i++){
-
-			strcpy(mode, tokens[0]);
-			char* temp1="Funny";
-			char* temp2="world";
-			printf("found token %s (remove this debug output later)\n", tokens[i]);
-	
-	
-
-			execCommand(mode, tokens);
-
-			printf("\n");
-
-			}
-		
+		for(i=0;tokens[i]!=NULL;i++)
+		{
+			execCommand(tokens, i);		
 		}
 
-
-       
 		// Freeing the allocated memory	
-		for(i=0;tokens[i]!=NULL;i++){
+		for(i=0;tokens[i]!=NULL;i++)
+		{
 			free(tokens[i]);
 		}
+
 		free(tokens);
+	}	
 
 	return 0;
 }
