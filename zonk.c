@@ -87,7 +87,6 @@ int main(int argc, char* argv[]) {
 		line[strlen(line)] = '\n'; //terminate with new line
 		tokens = tokenize(line);
    
-       //do whatever you want with the commands, here we just print them
 
 		for(i=0;tokens[i]!=NULL;i++)
 		{
