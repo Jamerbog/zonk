@@ -27,9 +27,9 @@ char **tokenize(char *line)
     if (readChar == ' ' || readChar == '\n' || readChar == '\t'){
       token[tokenIndex] = '\0';
       if (tokenIndex != 0){
-	tokens[tokenNo] = (char*)malloc(MAX_TOKEN_SIZE*sizeof(char));
-	strcpy(tokens[tokenNo++], token);
-	tokenIndex = 0; 
+		tokens[tokenNo] = (char*)malloc(MAX_TOKEN_SIZE*sizeof(char));
+		strcpy(tokens[tokenNo++], token);
+		tokenIndex = 0; 
       }
     } else {
       token[tokenIndex++] = readChar;
@@ -41,13 +41,41 @@ char **tokenize(char *line)
   return tokens;
 }
 
+char* catTokens(char ** tokens)
+{
+	static char tokenString[MAX_INPUT_SIZE];
+
+	for (int i=0; tokens[i] != NULL; i++)
+	{
+		strcat(tokenString, tokens[i]);
+		strcat(tokenString, ", ");
+	}
+
+	int size = strlen(tokenString);
+	tokenString[size-2] = '\0';
+
+	return tokenString;
+}
+
+
+
 void execCommand(char ** tokens, int i)
 {
+	
+	char tokenString[MAX_INPUT_SIZE];
+	
+	strcpy(tokenString, catTokens(tokens));
+
+	printf("%s\n", tokenString);
+
+	
+
 	pid = fork();
 
+	
 	if (pid == 0 && strcmp(tokens[0], "cd") != 0)
 	{
-		if (-1 ==  execlp(tokens[0], tokens[0], tokens[1], NULL)) {
+		if (-1 ==  execlp(tokens[0], tokenString, NULL)) {
 
 			if (i == 0)
 			{
@@ -60,11 +88,12 @@ void execCommand(char ** tokens, int i)
 		chdir(tokens[1]);
 	}
 
+	tokenString[0] = '\0';
+
 	if (pid != 0)
 	{
 		wait(NULL);
 	}
-
 }
 
 int main(int argc, char* argv[]) {
@@ -86,13 +115,9 @@ int main(int argc, char* argv[]) {
 
 		line[strlen(line)] = '\n'; //terminate with new line
 		tokens = tokenize(line);
-   
 
-		for(i=0;tokens[i]!=NULL;i++)
-		{
-			execCommand(tokens, i);		
-		}
-
+		execCommand(tokens, i);		
+		
 		// Freeing the allocated memory	
 		for(i=0;tokens[i]!=NULL;i++)
 		{
