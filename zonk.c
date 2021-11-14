@@ -8,6 +8,7 @@
 #define MAX_INPUT_SIZE 1024
 #define MAX_TOKEN_SIZE 64
 #define MAX_NUM_TOKENS 64
+#define PATH_MAX 1024
 
 int pid;
 
@@ -41,42 +42,14 @@ char **tokenize(char *line)
   return tokens;
 }
 
-char* catTokens(char ** tokens)
-{
-	static char tokenString[MAX_INPUT_SIZE];
-
-	for (int i=0; tokens[i] != NULL; i++)
-	{
-		strcat(tokenString, tokens[i]);
-		strcat(tokenString, ", ");
-	}
-
-	int size = strlen(tokenString);
-	tokenString[size-2] = '\0';
-
-	return tokenString;
-}
-
-
-
 void execCommand(char ** tokens, int i)
 {
-	
-	char tokenString[MAX_INPUT_SIZE];
-	
-	strcpy(tokenString, catTokens(tokens));
-
-	printf("%s\n", tokenString);
-
-	
-
 	pid = fork();
-
 	
 	if (pid == 0 && strcmp(tokens[0], "cd") != 0)
 	{
-		if (-1 ==  execlp(tokens[0], tokenString, NULL)) {
-
+		if (-1 ==  execlp(tokens[0], tokens[0], tokens[1], tokens[2], tokens[3], tokens[4],
+		tokens[5], tokens[6], tokens[7], tokens[8], tokens[9], tokens[10], NULL)) {
 			if (i == 0)
 			{
 				printf("Failed to find program '%s' in PATH.\n", tokens[0]);
@@ -88,17 +61,38 @@ void execCommand(char ** tokens, int i)
 		chdir(tokens[1]);
 	}
 
-	tokenString[0] = '\0';
-
 	if (pid != 0)
 	{
 		wait(NULL);
 	}
 }
 
-int main(int argc, char* argv[]) {
+void displayPrompt()
+{
+	char cwd[PATH_MAX];
+	int slashCount = 0; 
+	char currentFolder[sizeof(cwd)]; 
+	getcwd(cwd, sizeof(cwd));
 
-	char  line[MAX_INPUT_SIZE];            
+	for (int i=0; i < sizeof(cwd) && slashCount < 2; i++)
+	{
+		if (cwd[i] == "/")
+		{
+			slashCount++;
+		}
+		else 
+		{
+			strcat(currentFolder, cwd[i]);
+		}
+	}
+
+	printf("[James@Fedora %s]$ ", currentFolder);
+}
+
+int main(int argc, char* argv[]) 
+{
+
+	char  line[MAX_INPUT_SIZE];          
 	char  **tokens;   
 	int i;
 
@@ -107,7 +101,7 @@ int main(int argc, char* argv[]) {
 		/* BEGIN: TAKING INPUT */
 
 		bzero(line, sizeof(line));
-		printf("$ ");
+		displayPrompt();	
 		scanf("%[^\n]", line);
 		getchar();
 
