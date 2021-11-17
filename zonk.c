@@ -42,7 +42,7 @@ char **tokenize(char *line)
   return tokens;
 }
 
-void execCommand(char ** tokens, int i)
+void execCommand(char ** tokens, int i, char* user)
 {
 	pid = fork();
 	
@@ -57,8 +57,14 @@ void execCommand(char ** tokens, int i)
 		}
 	}
 
-	else if (pid == 0) {
+	else if (pid == 0 && *tokens[1] != '~') {
 		chdir(tokens[1]);
+	}
+
+	else if (pid == 0 && *tokens[1] == '~') {
+		char homePath[64] = "/home/";
+		strcat(homePath, user);
+		chdir(homePath);
 	}
 
 	if (pid != 0)
@@ -67,31 +73,28 @@ void execCommand(char ** tokens, int i)
 	}
 }
 
-void displayPrompt()
+void displayPrompt(char* user)
 {
 	char cwd[PATH_MAX];
-	int slashCount = 0; 
-	char currentFolder[sizeof(cwd)]; 
+
 	getcwd(cwd, sizeof(cwd));
 
-	for (int i=0; i < sizeof(cwd) && slashCount < 2; i++)
+	char hostname[1024];
+    gethostname(hostname, 1024);
+
+	char homePath[64] = "/home/";
+	strcat(homePath, user);
+
+	if (strcmp(cwd, homePath) == 0)
 	{
-		if (cwd[i] == "/")
-		{
-			slashCount++;
-		}
-		else 
-		{
-			strcat(currentFolder, cwd[i]);
-		}
+		strcpy(cwd, "~");
 	}
 
-	printf("[James@Fedora %s]$ ", currentFolder);
+	printf("[%s@%s] - [%s]\n --$ ", user, hostname, cwd);
 }
 
 int main(int argc, char* argv[]) 
 {
-
 	char  line[MAX_INPUT_SIZE];          
 	char  **tokens;   
 	int i;
@@ -101,7 +104,11 @@ int main(int argc, char* argv[])
 		/* BEGIN: TAKING INPUT */
 
 		bzero(line, sizeof(line));
-		displayPrompt();	
+		
+		char *user=getenv("USER");
+		if(user==NULL) return EXIT_FAILURE;
+		
+		displayPrompt(user);	
 		scanf("%[^\n]", line);
 		getchar();
 
@@ -110,7 +117,7 @@ int main(int argc, char* argv[])
 		line[strlen(line)] = '\n'; //terminate with new line
 		tokens = tokenize(line);
 
-		execCommand(tokens, i);		
+		execCommand(tokens, i, user);		
 		
 		// Freeing the allocated memory	
 		for(i=0;tokens[i]!=NULL;i++)
